@@ -1,5 +1,5 @@
 #!/bin/bash
-# 在 Oracle Cloud Shell 里运行：创建新加坡中转机（VLESS + Reality 入口，所有流量转发给 GCP 出口机）。
+# 在 Oracle Cloud Shell 里运行：在主区域创建中转机（VLESS + Reality 入口，所有流量转发给 GCP 出口机）。
 #   bash oracle/setup.sh <GCP 公网 IP> '<SS 密码>' [SS 端口，默认 8388]
 # 可用环境变量覆盖：SNI（Reality 伪装站点，默认 www.microsoft.com）、SHAPE（A1 或 MICRO，默认先试 A1）、
 # COMPARTMENT_ID（默认根区间）。
@@ -93,9 +93,7 @@ main() {
 
   COMP=${COMPARTMENT_ID:-${OCI_TENANCY:?请在 Oracle Cloud Shell 里运行，或设置 COMPARTMENT_ID}}
   echo "区域：${OCI_REGION:-未知}"
-  if [ "${OCI_REGION:-}" != "ap-singapore-1" ]; then
-    echo "提示：当前 Cloud Shell 区域不是新加坡（ap-singapore-1）。免费实例只能建在主区域，继续使用当前区域。"
-  fi
+  echo "免费实例只能建在主区域；如果上面不是你的主区域，请先在控制台右上角切换后重开 Cloud Shell。"
 
   if oci compute instance list --compartment-id "$COMP" --display-name "$NAME" \
       --lifecycle-state RUNNING --query 'data[0].id' --raw-output 2>/dev/null | grep -q ocid; then
@@ -145,7 +143,7 @@ main() {
   echo "== 实例（可能要几分钟）"
   local instance="" shape=${SHAPE:-A1}
   if [ "$shape" = "A1" ]; then
-    # Ampere A1 免费额度 4 核 24G；这里只用 1 核 6G，剩下的留给你别的用途。新加坡经常「容量不足」。
+    # Ampere A1 免费额度 4 核 24G；这里只用 1 核 6G，剩下的留给你别的用途。亚洲各区经常「容量不足」。
     instance=$(launch VM.Standard.A1.Flex '{"ocpus":1,"memoryInGBs":6}') || {
       echo "A1 创建失败（多半是 Out of host capacity），改用 AMD 免费小鸡 VM.Standard.E2.1.Micro。"
       instance=""
