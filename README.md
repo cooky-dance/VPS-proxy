@@ -123,6 +123,35 @@ bash gcp/lockdown.sh <Oracle 的 IP>
 
 ---
 
+## 没有信用卡：买一台支持支付宝的 VPS（单机方案）
+
+Oracle 和 GCP 都必须绑信用卡。没有信用卡的话，最稳的长期方案是花一点钱买一台自己的海外 VPS，用 `single-vps/setup.sh` 一条命令装好。流量直接从这台 VPS 出去。
+
+**买什么（价格和线路以商家官网为准）：**
+
+| 商家 | 付款 | 大致价格 | 特点 |
+|---|---|---|---|
+| RackNerd | 支付宝 / 微信 / PayPal | 年付十几美元起（常有活动） | 最便宜；普通线路，晚高峰可能慢 |
+| Vultr | 支付宝 / 微信 / PayPal | 月付约 5～6 美元，按小时计费 | 可以随时删机换 IP；部分 IP 段在国内被墙过 |
+| 搬瓦工 BandwagonHost | 支付宝 / PayPal | CN2 GIA 约 50 美元/季起 | 线路好，晚高峰稳定，贵 |
+| DMIT | 支付宝 / 微信 / PayPal | CN2 GIA 月付约 11 美元起 | 线路好，贵 |
+
+- 想省钱先选 RackNerd 或 Vultr；想晚高峰也稳，再考虑 CN2 GIA 线路。
+- 系统选 **Debian 12** 或 **Ubuntu 22.04/24.04**，机房选美西（洛杉矶、圣何塞）、日本或香港。
+- **不要用国内云厂商（阿里云、腾讯云等）的海外机器做这个**：账号是实名的，条款也禁止，被发现会封机，还可能有更大的麻烦。
+
+**安装：** 用服务商给的 root 密码 SSH 登录（没有 SSH 工具就用控制台里的「VNC / Console」网页终端），然后运行：
+
+```bash
+apt-get update && apt-get install -y git
+git clone https://github.com/cooky-dance/VPS-proxy.git && cd VPS-proxy
+bash single-vps/setup.sh
+```
+
+最后会打印一条 `vless://` 链接，按「第 6 步：导入客户端」导入即可。重复运行不会换密钥，链接保持不变。
+
+---
+
 ## 手动步骤一览
 
 | # | 在哪 | 做什么 |
@@ -163,6 +192,7 @@ Oracle 中转机上的配置在 `/etc/sing-box/config.json`。
 | `gcp/startup.sh` | GCP 出口机（开机自动） | 装 sing-box（Shadowsocks 2022 入站，拒绝访问内网和元数据地址）、BBR、traffic-guard |
 | `gcp/lockdown.sh` | Google Cloud Shell | 防火墙只放行 Oracle IP |
 | `oracle/setup.sh` | Oracle Cloud Shell | 建网络和中转机，生成 Reality 密钥和客户端链接 |
+| `single-vps/setup.sh` | 任意 Debian/Ubuntu VPS（root） | 单机方案：VLESS + Reality，直接出网 |
 
 sing-box 固定用 1.12.9 版本。整条链路（客户端 → Reality 中转 → SS 出口）已经在本地用这个版本实际跑通；UUID 错误的连接会被拒绝；出口端访问 `127.0.0.1`、`169.254.169.254` 会被拒绝。
 
